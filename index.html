@@ -1,0 +1,239 @@
+<!doctype html>
+    <head>
+        <meta charset="utf-8">
+        <meta name="viewport" content=""width=device-width, initial-scale=1">
+        <title>iSuperGP</title>
+        <link rel="stylesheet" href="http://code.jquery.com/mobile/1.0rc2/jquery.mobile-1.0rc2.min.css" />
+	    <script src="http://code.jquery.com/jquery-1.6.4.min.js"></script>
+	    <script src="http://code.jquery.com/mobile/1.0rc2/jquery.mobile-1.0rc2.min.js"></script>
+        <script src="sgp.js"></script>
+
+        <style>
+            .ui-footer .ui-btn-right { position: absolute; right: 40px; }
+            #sitelist h2 {text-align: center;}
+        </style>
+    </head>
+    <body>
+        <div data-role="page" id="home">
+            <div data-role="header">
+                <h1>iSuperGP</h1>
+                <a href="#addSite" data-icon="plus" class="ui-btn-right">Add Site</a>
+            </div>
+
+            <div data-role="content" id="sitelist">
+                <input type="password" placeholder="Master Password" name="pwd" id="pwd" autocapitalize="off" autocorrect="off" autocomplete="off"/>
+                <h2>My Sites</h2>
+                <div id="sites">
+                    <ul data-role="listview">
+                        <li id="site_template" class="row" style="display: none;">
+                            <a href="#"><span class="site">Label</span></a>
+                            <!--<a href="#" data-icon="delete" style="display: none;">Delete</a>-->
+                        </li>
+                    </ul>
+                </div>
+                <p>&nbsp;</p>
+            </div>
+
+            <div data-role="footer" class="ui-bar">
+                <a href="#about" data-role="button">About</a>
+                <a href="#options" data-role="button" data-icon="gear" class="ui-btn-right">Options</a>
+            </div>
+        </div>
+
+        <div data-role="page" id="addSite">
+            <div data-role="header">
+                <a data-rel="back" data-icon="back">Back</a>
+                <h1>Add Site</h1>
+            </div>
+
+            <div data-role="content">
+                <form method="post">
+                    <label for="site" class="ui-hidden-accessible">Site</label>
+                    <input type="text" name="site" id="site" value="" placeholder="Site" autocapitalize="off" autocorrect="off" autocomplete="off"/>
+                    <input type="submit" class="submit" name="action" value="Save" />
+                </form>
+            </div>
+        </div>
+
+        <div data-role="page" id="genPassword">
+            <div data-role="header">
+                <a data-rel="back" data-icon="back">Back</a>
+                <h1>Password</h1>
+            </div>
+
+            <div data-role="content">
+                <label for="genPass" class="ui-hidden-accessible">Generated Password</label>
+                <input type="text" placeholder="Generated Password" name="genPass" id="genPass" />
+            </div>
+        </div>
+
+        <div data-role="page" id="options">
+            <div data-role="header">
+                <a data-rel="back" data-icon="back">Back</a>
+                <h1>Options</h1>
+            </div>
+
+            <div data-role="content">
+                <form method="post">
+                    <label for="passwordLength">Password Length</label>
+                    <select name="passwordLength" id="passwordLength">
+                        <option value ="4">4</option>
+                        <option value ="5">5</option>
+                        <option value ="6">6</option>
+                        <option value ="7">7</option>
+                        <option value ="8">8</option>
+                        <option value ="9">9</option>
+                        <option value ="10">10</option>
+                        <option value ="11">11</option>
+                        <option value ="12">12</option>
+                        <option value ="13">13</option>
+                        <option value ="14">14</option>
+                        <option value ="15">15</option>
+                        <option value ="16">16</option>
+                        <option value ="17">17</option>
+                        <option value ="18">18</option>
+                        <option value ="19">19</option>
+                        <option value ="20">20</option>
+                        <option value ="21">21</option>
+                        <option value ="22">22</option>
+                        <option value ="23">23</option>
+                        <option value ="24">24</option>
+                    </select>
+                    <label for="subdomainRemoval">Subdomain Removal</label>
+                    <select name="subdomainRemoval" id="subdomainRemoval" data-role="slider">
+                        <option value="true">On</option>
+                        <option value="false">Off</option>
+                    </select>
+                    <input type="submit" class="submit" name="action" value="Save Changes"/>
+                </form>
+            </div>
+        </div>
+
+        <div data-role="page" id="about">
+            <div data-role="content">
+                <p>About me...</p>
+            </div>
+        </div>
+
+        <script type="text/javascript">
+            var db;
+
+            $(function(){
+                $("#addSite form").submit(saveSite);
+                $("#options form").submit(saveOptions);
+
+                var shortName = "iSuperGP";
+                var version = "0.2";
+                var displayName = "iSuperGP";
+                var maxSize = 65536;
+                db = openDatabase(shortName, version, displayName, maxSize);
+
+                db.transaction(function(transaction){
+                    transaction.executeSql('CREATE TABLE IF NOT EXISTS sites (id INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT, name TEXT NOT NULL);');
+                    transaction.executeSql('CREATE TABLE IF NOT EXISTS options (len INTEGER NOT NULL, sdr TEXT NOT NULL);');
+                    //transaction.executeSql('INSERT INTO options (len, sdr) VALUES (?, ?);', [10, 'true'])
+                });
+
+                loadOptions();
+                refreshSites();
+            });
+
+            function refreshSites(){
+                $("#sites ul li:gt(0)").remove();
+
+                db.transaction(function(transaction){
+                    transaction.executeSql('SELECT * from sites ORDER BY name;', null,
+                    function(transaction, result){
+                        for(var i = 0; i < result.rows.length; i++) {
+                            var row = result.rows.item(i);
+                            var newSiteRow = $("#site_template").clone();
+
+                            newSiteRow.removeAttr("id");
+                            newSiteRow.css('display', 'block');
+                            newSiteRow.data('siteID', row.id);
+
+                            newSiteRow.appendTo("#sites ul");
+                            newSiteRow.find(".site").text(row.name);
+
+                            newSiteRow.find(".site").parent().click(function(){
+                                var clickedSite = $(this).closest(".row");
+                                var clickedSiteID = clickedSite.data('siteID');
+
+                                db.transaction(function(transaction){
+                                   transaction.executeSql('SELECT * from sites where id = ?;', [clickedSiteID],
+                                   function(transaction, result){
+                                       var row = result.rows.item(0);
+                                       var domain = row.name;
+                                       var masterPwd = $("#pwd").val();
+
+                                       transaction.executeSql('SELECT * from options;', null,
+                                           function(transaction, result){
+                                               var disableTLD = (result.rows.item(0).sdr == "true") ? true : false;
+                                               var length = result.rows.item(0).len;
+
+                                               if(masterPwd && domain){
+                                                   domain = gp2_process_uri(domain, !disableTLD); // inverted domain removal
+                                                   $("#genPass").val(gp2_generate_passwd(masterPwd+':'+domain, length));
+                                                   $.mobile.changePage("#genPassword", "slideup");
+                                               }
+                                           }, errorHandler);
+                                   }, errorHandler)
+                                });
+                            });
+                        }
+                    },
+                    errorHandler);
+                });
+            }
+
+            function errorHandler(transaction, error) {
+                alert('Sorry, slight mixup ('+ error.message + ' [' + error.code + '] )');
+                return true;
+            }
+
+            function saveOptions(){
+                var length = $("#passwordLength").val();
+                var sdr = $("#subdomainRemoval").val();
+
+                db.transaction(function(transaction){
+                   transaction.executeSql('UPDATE options set len = ?, sdr = ?;', [length, sdr],
+                   function(){
+                       refreshSites();
+                       $.mobile.changePage("#home", "slideup");
+                   }, errorHandler);
+                });
+                return false;
+            }
+
+            function saveSite(){
+                var site = $("#site").val();
+                db.transaction(function(transaction){
+                   transaction.executeSql('INSERT INTO sites (name) VALUES (?);', [site],
+                   function(){
+                       refreshSites();
+                       $.mobile.changePage("#home", "slideup");
+                   }, errorHandler);
+                });
+                return false;
+            }
+
+            function loadOptions(){
+                db.transaction(function(transaction){
+                   transaction.executeSql('SELECT * FROM options;', null,
+                   function(transaction, result){
+                       if(result.rows.length == 1){
+                           $("#passwordLength").val(result.rows.item(0).len);
+                           $("#subdomainRemoval").val(result.rows.item(0).sdr);
+                       }
+                       else {
+                           $("#passwordLength").val(10);
+                           $("#subdomainRemoval").val("true");
+
+                           transaction.executeSql('INSERT INTO options (len, sdr) VALUES (?, ?);', [10, 'true'], null, errorHandler);
+                       }
+                   }, errorHandler);
+                });
+            }
+        </script>
+    </body>
+</html>
