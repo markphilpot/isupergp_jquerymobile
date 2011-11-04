@@ -1,7 +1,11 @@
 <!doctype html>
     <head>
         <meta charset="utf-8">
-        <meta name="viewport" content=""width=device-width, initial-scale=1">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+
+        <meta name="apple-mobile-web-app-capable" content="yes" />
+        <meta name="apple-mobile-web-app-status-bar-style" content="black" />
+
         <title>iSuperGP</title>
         <link rel="stylesheet" href="http://code.jquery.com/mobile/1.0rc2/jquery.mobile-1.0rc2.min.css" />
 	    <script src="http://code.jquery.com/jquery-1.6.4.min.js"></script>
@@ -9,7 +13,7 @@
         <script src="sgp.js"></script>
 
         <style>
-            .ui-footer .ui-btn-right { position: absolute; right: 40px; }
+            /* .ui-footer .ui-btn-right { position: absolute; right: 40px; } */
             #sitelist h2 {text-align: center;}
         </style>
     </head>
@@ -34,9 +38,10 @@
                 <p>&nbsp;</p>
             </div>
 
-            <div data-role="footer" class="ui-bar">
+            <div data-role="footer" data-position="fixed">
                 <a href="#about" data-role="button">About</a>
-                <a href="#options" data-role="button" data-icon="gear" class="ui-btn-right">Options</a>
+                <!--<a href="#options" data-role="button" data-icon="gear" class="ui-btn-right">Options</a>-->
+                <a href="#options" data-role="button" data-icon="gear">Options</a>
             </div>
         </div>
 
@@ -179,6 +184,15 @@
                                            }, errorHandler);
                                    }, errorHandler)
                                 });
+                            });
+
+                            newSiteRow.bind('swiperight', function(event, ui){
+                               var deleteButton = "<a href='#' class='deleteButton' data-icon='delete'>Delete</a>";
+                               $(this).append(deleteButton);
+                            });
+
+                            newSiteRow.bind('swipeleft', function(event, ui){
+                                $(this).find(".deleteButton").remove();
                             });
                         }
                     },
