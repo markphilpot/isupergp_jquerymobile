@@ -5,6 +5,8 @@
 
         <meta name="apple-mobile-web-app-capable" content="yes" />
         <meta name="apple-mobile-web-app-status-bar-style" content="black" />
+        <link rel="apple-touch-icon" href="logo.png" />
+        <link rel="apple-touch-startup-image" href="logo.png"/>
 
         <title>iSuperGP</title>
         <link rel="stylesheet" href="http://code.jquery.com/mobile/1.0rc2/jquery.mobile-1.0rc2.min.css" />
@@ -62,7 +64,7 @@
             <div data-role="content">
                 <form method="post">
                     <label for="site" class="ui-hidden-accessible">Site</label>
-                    <input type="text" name="site" id="site" value="" placeholder="Site" autocapitalize="off" autocorrect="off" autocomplete="off"/>
+                    <input type="url" name="site" id="site" value="" placeholder="Site" autocapitalize="off" autocorrect="off" autocomplete="off"/>
                     <input type="submit" class="submit" name="action" value="Save" />
                 </form>
             </div>
